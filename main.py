@@ -10,10 +10,7 @@ mouse = Controller()
 # Global variables
 new_msg_received = False
 
-startMsg = "Witaj w elektronicznym systemie automatycznej rejestracji do Pani Doktor Zabek. Wybierz jedna z dostepnych opcji:"
-choice1 = "1. Umow wizyte."
-choice2 = "2. Sprawdz termin swojej wizyty."
-choice3 = "0. Zakoncz."
+startMsg = "Welcome to the electronic system of automatic registration to the dentist. I can help you to book, check, change or cancel an appointment. Please, tell me what you want to do."
 
 copy_path = "Images/copy_dark.png"
 attachment_path = "Images/attachment_dark.png"
@@ -43,7 +40,7 @@ def get_message():
 
     copy = go_to_img(copy_path, get_message_error, 1)
     sleep(.5)
-    return pc.paste() if copy != 0 else 0
+    return pc.paste() if copy != 0 else "No response..."
 
 def send_message(msg):
     go_to_img(attachment_path, find_att_error, 2, offset_x = 100)
@@ -73,31 +70,40 @@ def book_term():
 def change_term():
     send_message("Changing term...")
 
+def check_term():
+    send_message("Checking term...")
+
+def cancel_term():
+    send_message("Cancelling term...")
+
 def main():
     while(1):
         sleep(3)
         new_msg_received = open_new_msg(unread_path)   
         while(new_msg_received):
             send_message(startMsg)
-            send_message(choice1)
-            send_message(choice2)
-            send_message(choice3)
             sleep(10)
             user_message = get_message()
 
-            while((user_message != "1") or (user_message != "2") or (user_message != "0")):
+            count = 0
+            while((("book" not in user_message) and ("chang" not in user_message) and ("check" not in user_message) and ("cancel" not in user_message)) or (count < 2)):
                 close_reply_field()
-                send_message("Nie rozumiem co mam zrobic, wybierz jedna z podanych opcji...")
+                send_message("I don't understand what you want to do, please try again.")
                 sleep(10)
+                count += 1
                 user_message = get_message()
                 
-            if user_message == "1":
+            if "book" in user_message:
                 book_term()
-            elif user_message == "2":
+            elif "chang" in user_message:
                 change_term()
-            elif user_message == "0":
-                send_message("Dziekuje za kontakt i zycze milego dnia. Wyslij kolejna wiadomosc, aby zaczac od nowa.")
-        new_msg_received = False
+            elif "check" in user_message:
+                change_term()
+            elif "cancel" in user_message:
+                change_term()                
+            elif count > 2:
+                send_message("Thank you for contacting me. Send another message to start again.")
+            new_msg_received = False
 
 
 if __name__ == '__main__':
