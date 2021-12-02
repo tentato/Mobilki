@@ -31,20 +31,26 @@ def go_to_img(img_path, error_msg, clicks, offset_x = 0, offset_y = 0):
         print(error_msg)
         return 0
     else:
-        pt.moveTo(pos, duration = .1)
-        pt.moveRel(offset_x, offset_y, duration = .1)
+        pt.moveTo(pos, duration = .2)
+        pt.moveRel(offset_x, offset_y, duration = .2)
         pt.click(clicks = clicks, interval = .1)
 
 def get_message():
-    go_to_img(attachment_path, find_att_error, 0, offset_y = -65)
-    mouse.click(Button.left, 3)
-    with pt.hold('ctrl'):
-        pt.typewrite('a')
-    pt.rightClick()
+    no_resp = True
+    while(no_resp):
+        go_to_img(attachment_path, find_att_error, 0, offset_y = -65)
+        mouse.click(Button.left, 3)
+        pt.rightClick()
+        sleep(.5)
 
-    copy = go_to_img(copy_path, get_message_error, 1)
-    sleep(.5)
-    return pc.paste() if copy != 0 else "No response..."
+        copy = go_to_img(copy_path, get_message_error, 1)
+        if copy != 0:
+            no_resp = False
+        else:
+            close_reply_field()
+        sleep(1)
+    return pc.paste() 
+    #if copy != 0 else "No response..."
 
 def send_message(msg):
     go_to_img(attachment_path, find_att_error, 2, offset_x = 100)
@@ -70,23 +76,24 @@ def close_reply_field():
 
 def book_term():
     send_message("Booking a term:")
-    send_message("Please provide the following information. Remember to use the same order, send the data in one message and split the data using Enter button.")
-    items = ["Please provide...", "Date: ", "Time: ", "Name: ", "Surname: ", "Phone: "]
-    for item in items:
-        pt.typewrite(item)
-        with pt.hold('shiftright'):
-            pt.press('enter')
-    pt.press('enter')
-    #wait for response
-    sleep(30)
-    user_message = get_message().lower()
-    insert_list = user_message.split("\n")
-    try:
-        database.insert_appointment(insert_list[0], insert_list[1], insert_list[2], insert_list[3], insert_list[4], 1, 1, 1)
-    except:
-        send_message("Cannot book the appointment at the moment. Please try again later.")
+    send_message("Please provide the following information one by one. Remember to use the same order, send each data in a separate message.")
+    send_message("Please provide a date (dd.mm.yyyy):")
+    user_date = get_message().lower()
 
-    send_message("Appointment booked successfully. Thank you for using our service.")
+    send_message("Please provide a time (hh:mm):")
+    user_time = get_message().lower()
+
+    send_message("Please provide your name:")
+    user_name = get_message().lower()
+
+    send_message("Please provide your surname:")
+    user_surname = get_message().lower()
+
+    send_message("Please provide your phone number:")
+    user_phone = get_message().lower() 
+
+    database.insert_appointment(user_date, user_time, user_name, user_surname, user_phone, 1, 1, 1)
+
 
 def change_term():
     send_message("Changing term...")
@@ -102,29 +109,20 @@ def cancel_term():
 
 def main():
     # sleep(3)
-    # user_message = get_message().lower()
-    # insert_list = user_message.split("\n")
-    # print(insert_list)
-    # try:
-    #     database.insert_appointment(insert_list[0], insert_list[1], insert_list[2], insert_list[3], insert_list[4], 1, 1, 1)
-    #     send_message("Appointment booked successfully. Thank you for using our service.")
-    # except:
-    #     send_message("Cannot book the appointment at the moment. Please try again later.")
-
-    
+    # book_term()    
     # exit()
     while(1):
         sleep(3)
         new_msg_received = open_new_msg(unread_path)   
         while(new_msg_received):
             send_message(startMsg)
-            sleep(10)
+            sleep(1)
             user_message = get_message().lower()
 
             count = 0
             while((("book" not in user_message) and ("chang" not in user_message) and ("check" not in user_message) and ("cancel" not in user_message)) and (count < 2)):
                 send_message("I don't understand what you want to do, please try again.")
-                sleep(10)
+                sleep(1)
                 count += 1
                 user_message = get_message().lower()
                 close_reply_field()

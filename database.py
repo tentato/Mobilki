@@ -1,4 +1,5 @@
 import psycopg2
+import main
 
 def connect():
     """ Connect to the PostgreSQL database server """
@@ -137,8 +138,10 @@ def insert_appointment(date, hour, patient_name, patient_surname, patient_phone,
         conn.commit()
         # close communication with the PostgreSQL database server
         cur.close()
+        main.send_message("Appointment booked successfully. Thank you for using our service.")
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
+        main.send_message("Cannot book the appointment at the moment. Please try again later.")
     finally:
         if conn is not None:
             conn.close()
