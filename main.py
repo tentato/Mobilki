@@ -4,6 +4,8 @@ import pyperclip as pc
 from pynput.mouse import Button, Controller
 from time import sleep
 
+import database
+
 pt.FAILSAFE = True
 mouse = Controller()
 
@@ -36,6 +38,8 @@ def go_to_img(img_path, error_msg, clicks, offset_x = 0, offset_y = 0):
 def get_message():
     go_to_img(attachment_path, find_att_error, 0, offset_y = -65)
     mouse.click(Button.left, 3)
+    with pt.hold('ctrl'):
+        pt.typewrite('a')
     pt.rightClick()
 
     copy = go_to_img(copy_path, get_message_error, 1)
@@ -44,8 +48,8 @@ def get_message():
 
 def send_message(msg):
     go_to_img(attachment_path, find_att_error, 2, offset_x = 100)
-    pt.typewrite(msg, interval = .001)
-    pt.typewrite("\n")
+    pt.typewrite(msg)
+    pt.press('enter')
 
 def open_new_msg(img_path):
     pos = pt.locateCenterOnScreen(img_path, confidence = .8)
@@ -65,7 +69,24 @@ def close_reply_field():
     go_to_img(x_path, close_reply_field_error, 1)
 
 def book_term():
-    send_message("Booking a term...")
+    send_message("Booking a term:")
+    send_message("Please provide the following information. Remember to use the same order, send the data in one message and split the data using Enter button.")
+    items = ["Please provide...", "Date: ", "Time: ", "Name: ", "Surname: ", "Phone: "]
+    for item in items:
+        pt.typewrite(item)
+        with pt.hold('shiftright'):
+            pt.press('enter')
+    pt.press('enter')
+    #wait for response
+    sleep(30)
+    user_message = get_message().lower()
+    insert_list = user_message.split("\n")
+    try:
+        database.insert_appointment(insert_list[0], insert_list[1], insert_list[2], insert_list[3], insert_list[4], 1, 1, 1)
+    except:
+        send_message("Cannot book the appointment at the moment. Please try again later.")
+
+    send_message("Appointment booked successfully. Thank you for using our service.")
 
 def change_term():
     send_message("Changing term...")
@@ -80,6 +101,18 @@ def cancel_term():
 
 
 def main():
+    # sleep(3)
+    # user_message = get_message().lower()
+    # insert_list = user_message.split("\n")
+    # print(insert_list)
+    # try:
+    #     database.insert_appointment(insert_list[0], insert_list[1], insert_list[2], insert_list[3], insert_list[4], 1, 1, 1)
+    #     send_message("Appointment booked successfully. Thank you for using our service.")
+    # except:
+    #     send_message("Cannot book the appointment at the moment. Please try again later.")
+
+    
+    # exit()
     while(1):
         sleep(3)
         new_msg_received = open_new_msg(unread_path)   
