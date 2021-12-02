@@ -76,6 +76,9 @@ def check_term():
 def cancel_term():
     send_message("Cancelling term...")
 
+# Sprawdzac input co sekunde, przestac sprawdzac po 10 sekundach
+
+
 def main():
     while(1):
         sleep(3)
@@ -83,15 +86,15 @@ def main():
         while(new_msg_received):
             send_message(startMsg)
             sleep(10)
-            user_message = get_message()
+            user_message = get_message().lower()
 
             count = 0
-            while((("book" not in user_message) and ("chang" not in user_message) and ("check" not in user_message) and ("cancel" not in user_message)) or (count < 2)):
-                close_reply_field()
+            while((("book" not in user_message) and ("chang" not in user_message) and ("check" not in user_message) and ("cancel" not in user_message)) and (count < 2)):
                 send_message("I don't understand what you want to do, please try again.")
                 sleep(10)
                 count += 1
-                user_message = get_message()
+                user_message = get_message().lower()
+                close_reply_field()
                 
             if "book" in user_message:
                 book_term()
